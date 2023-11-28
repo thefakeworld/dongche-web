@@ -48,7 +48,7 @@ class BaseConfig():
                 DB_PORT,
                 DB_NAME
             ) 
-
+            print('数据库', SQLALCHEMY_DATABASE_URI)
             USE_SQLITE  = False
 
         except Exception as e:

@@ -7,14 +7,16 @@ from datetime import datetime, timezone, timedelta
 
 from functools import wraps
 
-from flask import request
+from flask import json, jsonify, request
 from flask_restx import Api, Resource, fields
 
 import jwt
 
-from .models import db, Users, JWTTokenBlocklist
+from .models import db, Users, JWTTokenBlocklist, CarInfo
 from .config import BaseConfig
 import requests
+
+from sqlalchemy import text, inspect
 
 rest_api = Api(version="1.0", title="Users API")
 
@@ -120,15 +122,17 @@ class Login(Resource):
        Login user by taking 'login_model' input and return JWT token
     """
 
-    @rest_api.expect(login_model, validate=True)
+    # @rest_api.expect(login_model, validate=True)
     def post(self):
-
         req_data = request.get_json()
+        
 
         _email = req_data.get("email")
         _password = req_data.get("password")
 
         user_exists = Users.get_by_email(_email)
+        print('登录', req_data)
+        print('user_exists', user_exists)
 
         if not user_exists:
             return {"success": False,
@@ -240,3 +244,49 @@ class GitHubLogin(Resource):
                     "username": user_json['username'],
                     "token": token,
                 }}, 200
+    
+
+
+@rest_api.route('/api/cars/search')
+class CarsSearch(Resource):
+    def get(self):
+        print("搜索", request.args)
+        cars = CarInfo.query.filter(CarInfo.brand_name.like('宝马')).limit(4).all()
+
+        car_list = [car.toJSON() for car in cars]
+        return car_list
+        # return jsonify(car_list)
+        car_fields = [field.name for field in inspect(CarInfo).columns]
+        car_list = []
+        for car in cars:
+            car_dict = {
+                'brand_id': car.brand_id,
+                'brand_name': car.brand_name,
+                'car_name': car.car_name,
+                # 添加其他车辆信息的字段
+            }
+            car_list.append(car_dict)
+        return jsonify(car_list, car_fields)
+        
+        # return json.dumps(cars)
+        # ins = inspect(db.engine)  # 使用engine连接到数据库
+        # columns = ins.get_columns("users")  # 获取数据库表的字段名
+        # sql = text('SELECT * FROM users WHERE username = :name')
+        # result = db.session.execute(sql, {'name': '熊明'}).fetchall()
+        # import pandas  as pd
+        # result = pd.read_sql(sql_statement, con=con)
+        # data = result.to_dict(orient="records")
+
+        # print(result)
+        # engine = db.engine
+        # connection = engine.connect()
+        # cursor = connection.execute("select * from cars where brand='Toyota'")
+        # cursor.close()
+        # connection.close()
+
+        return {"success": True, 
+                # "res": result,
+                # "res2": result2,
+                # "cars": result,
+                "msg": "搜索"}, 200
+    

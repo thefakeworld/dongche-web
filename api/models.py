@@ -6,12 +6,18 @@ Copyright (c) 2019 - present AppSeed.us
 from datetime import datetime
 
 import json
+import pymysql
 
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy, inspect
 
+# database
+pymysql.install_as_MySQLdb()
 db = SQLAlchemy()
 
+def object_as_dict(obj):
+    return {c.key: getattr(obj, c.key)
+            for c in inspect(obj).mapper.column_attrs}
 
 class Users(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
@@ -74,7 +80,7 @@ class Users(db.Model):
 
 class JWTTokenBlocklist(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
-    jwt_token = db.Column(db.String(), nullable=False)
+    jwt_token = db.Column(db.String(120), nullable=False)
     created_at = db.Column(db.DateTime(), nullable=False)
 
     def __repr__(self):
@@ -83,3 +89,34 @@ class JWTTokenBlocklist(db.Model):
     def save(self):
         db.session.add(self)
         db.session.commit()
+
+
+
+class CarInfo(db.Model):
+    
+    car_name = db.Column(db.String(50))
+    dealer_text = db.Column(db.String(50))
+    series_type = db.Column(db.String(50))
+    series_name = db.Column(db.String(50))
+    official_price = db.Column(db.String(10))
+    series_id = db.Column(db.String(50))
+    dealer_price = db.Column(db.String(50))
+    has_dealer_price = db.Column(db.Boolean)
+    sale_status = db.Column(db.Integer)
+    car_page_enable = db.Column(db.Boolean)
+    car_year = db.Column(db.String(50))
+    brand_name = db.Column(db.String(50))
+    brand_id = db.Column(db.String(50))
+    car_id = db.Column(db.String(50), primary_key=True)
+
+    def toDICT(self):
+        return object_as_dict(self)
+
+    def toJSON(self):
+
+        return self.toDICT()
+    
+
+#  继续改写 https://www.orcode.com/question/440549_ke84c5.html
+# rows = conn.execute(query)
+# list_of_dicts = [{key: value for (key, value) in row.items()} for row in rows]

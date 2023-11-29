@@ -12,6 +12,8 @@ from flask_restx import Api, Resource, fields
 
 import jwt
 
+from api.utills import create_success_response
+
 from .models import db, Users, JWTTokenBlocklist, CarInfo
 from .config import BaseConfig
 import requests
@@ -103,17 +105,16 @@ class Register(Resource):
 
         user_exists = Users.get_by_email(_email)
         if user_exists:
-            return {"success": False,
-                    "msg": "Email already taken"}, 400
+            return create_success_response(msg="Email already taken", status_code=400)
 
         new_user = Users(username=_username, email=_email)
 
         new_user.set_password(_password)
         new_user.save()
 
-        return {"success": True,
-                "userID": new_user.id,
-                "msg": "The user was successfully registered"}, 200
+        return create_success_response({
+            id: new_user.id,
+        }, "The user was successfully registered")
 
 
 @rest_api.route('/api/users/login')
@@ -148,9 +149,10 @@ class Login(Resource):
         user_exists.set_jwt_auth_active(True)
         user_exists.save()
 
-        return {"success": True,
-                "token": token,
-                "user": user_exists.toJSON()}, 200
+        return create_success_response({
+            "token": token,
+            "user": user_exists.toDICT()
+        })
 
 
 @rest_api.route('/api/users/edit')
@@ -177,6 +179,34 @@ class EditUser(Resource):
         self.save()
 
         return {"success": True}, 200
+
+@rest_api.route('/api/users/get')
+class SearchUser(Resource):
+    """
+       get_user using 'user_edit_model' input
+    """
+    @token_required
+    def get(self, current_user):
+        print("搜索", request.args)
+        # req_data = request.get_json()
+
+        # print('get_user', '获取用户信息', req_data)
+
+        _id = request.args.get('id')
+      
+        user_exists = Users.get_by_id(_id)
+
+        if not user_exists:
+            return {"success": False,
+                    "msg": "This email does not exist."}, 400
+
+        # # create access token uwing JWT
+        # token = jwt.encode({'email': _email, 'exp': datetime.utcnow() + timedelta(minutes=30)}, BaseConfig.SECRET_KEY)
+
+        # user_exists.set_jwt_auth_active(True)
+        # user_exists.save()
+
+        return create_success_response(user_exists.toDICT())
 
 
 @rest_api.route('/api/users/logout')
@@ -238,7 +268,8 @@ class GitHubLogin(Resource):
         user.save()
 
         return {"success": True,
-                "user": {
+                "msg": '操作成功',
+                "data": {
                     "_id": user_json['_id'],
                     "email": user_json['email'],
                     "username": user_json['username'],
@@ -251,7 +282,8 @@ class GitHubLogin(Resource):
 class CarsSearch(Resource):
     def get(self):
         print("搜索", request.args)
-        cars = CarInfo.query.filter(CarInfo.brand_name.like('宝马')).limit(4).all()
+        brand_name = request.args.get('brand_name', '')
+        cars = CarInfo.query.filter(CarInfo.brand_name.like(brand_name)).limit(4).all()
 
         car_list = [car.toJSON() for car in cars]
         return car_list

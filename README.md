@@ -150,6 +150,10 @@ api-server-flask/
 └── tests.py
 ```
 
+## 启动 进入虚拟环境
+env\Scripts\activate
+
+docker run -it -p3100:5005 --name=dongche-server api-server-flask-flask_api
 <br />
 
 ## ✨ API

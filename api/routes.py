@@ -14,7 +14,7 @@ import jwt
 
 from api.utills import create_success_response
 
-from .models import db, Users, JWTTokenBlocklist, CarInfo
+from .models import CarSeries, db, Users, JWTTokenBlocklist, CarInfo
 from .config import BaseConfig
 import requests
 
@@ -57,7 +57,7 @@ def token_required(f):
             token = request.headers["authorization"]
 
         if not token:
-            return {"success": False, "msg": "Valid JWT token is missing"}, 400
+            return {"success": False, "msg": "无权限访问"}, 200
 
         try:
             data = jwt.decode(token, BaseConfig.SECRET_KEY, algorithms=["HS256"])
@@ -272,47 +272,47 @@ class GitHubLogin(Resource):
     
 
 
-@rest_api.route('/api/cars/search')
+@rest_api.route('/api/cars/list')
 class CarsSearch(Resource):
     def get(self):
         print("搜索", request.args)
         brand_name = request.args.get('brand_name', '')
+
+        # 车型 指导价格
         cars = CarInfo.query.filter(CarInfo.brand_name.like(brand_name)).limit(4).all()
 
         car_list = [car.toJSON() for car in cars]
         return car_list
-        # return jsonify(car_list)
-        car_fields = [field.name for field in inspect(CarInfo).columns]
-        car_list = []
-        for car in cars:
-            car_dict = {
-                'brand_id': car.brand_id,
-                'brand_name': car.brand_name,
-                'car_name': car.car_name,
-                # 添加其他车辆信息的字段
-            }
-            car_list.append(car_dict)
-        return jsonify(car_list, car_fields)
-        
-        # return json.dumps(cars)
-        # ins = inspect(db.engine)  # 使用engine连接到数据库
-        # columns = ins.get_columns("users")  # 获取数据库表的字段名
-        # sql = text('SELECT * FROM users WHERE username = :name')
-        # result = db.session.execute(sql, {'name': '熊明'}).fetchall()
-        # import pandas  as pd
-        # result = pd.read_sql(sql_statement, con=con)
-        # data = result.to_dict(orient="records")
 
-        # print(result)
-        # engine = db.engine
-        # connection = engine.connect()
-        # cursor = connection.execute("select * from cars where brand='Toyota'")
-        # cursor.close()
-        # connection.close()
+@rest_api.route('/api/cars_series')
+class CarsSearch(Resource):
+    @token_required
+    def get(self, user):
+        print("搜索", request.args)
+        brand_name = request.args.get('brand_name', type=str)
+        outter_name = request.args.get('outter_name', type=str)
+        dealer_price = request.args.get('dealer_price', type=str)
+        page = request.args.get('page', type=int, default=1)
+        per_page = request.args.get('per_page', type=int, default=10)
 
-        return {"success": True, 
-                # "res": result,
-                # "res2": result2,
-                # "cars": result,
-                "msg": "搜索"}, 200
+        query = CarSeries.query
+        if brand_name:
+            print('搜索',brand_name)
+            query = query.filter(CarSeries.brand_name.like(brand_name))
+        if outter_name:
+            print('搜索',outter_name)
+            query = query.filter(CarSeries.outter_name.like(outter_name))
+        if dealer_price:
+            print('搜索',dealer_price)
+            query = query.filter(CarSeries.dealer_price < dealer_price)
+
+        total_items = query.count()
+        print(total_items)
+        query = query.offset((page - 1) * per_page).limit(per_page)
+        cars = query.all()
+
+        return create_success_response({
+            'total': total_items,
+            'list': [car.toDICT() for car in cars]
+        })
     

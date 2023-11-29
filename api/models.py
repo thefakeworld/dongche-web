@@ -117,6 +117,24 @@ class CarInfo(db.Model):
         return self.toDICT()
     
 
+class CarSeries(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    cover_url = db.Column(db.String(50))
+    brand_name = db.Column(db.String(50))
+    outter_name = db.Column(db.String(50))
+    brand_id = db.Column(db.String(50))
+    dealer_price = db.Column(db.String(50))
+    has_dealer_price = db.Column(db.Boolean)
+    official_price = db.Column(db.String(10))
+    has_official_price = db.Column(db.Boolean)
+
+    def toDICT(self):
+        return object_as_dict(self)
+
+    def toJSON(self):
+
+        return self.toDICT()
+    
 #  继续改写 https://www.orcode.com/question/440549_ke84c5.html
 # rows = conn.execute(query)
 # list_of_dicts = [{key: value for (key, value) in row.items()} for row in rows]

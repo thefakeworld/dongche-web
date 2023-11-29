@@ -200,12 +200,6 @@ class SearchUser(Resource):
             return {"success": False,
                     "msg": "This email does not exist."}, 400
 
-        # # create access token uwing JWT
-        # token = jwt.encode({'email': _email, 'exp': datetime.utcnow() + timedelta(minutes=30)}, BaseConfig.SECRET_KEY)
-
-        # user_exists.set_jwt_auth_active(True)
-        # user_exists.save()
-
         return create_success_response(user_exists.toDICT())
 
 

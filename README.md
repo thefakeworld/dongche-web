@@ -153,7 +153,10 @@ api-server-flask/
 ## 启动 进入虚拟环境
 env\Scripts\activate
 
+## 通过docker启动容器
 docker run -it -p3100:5005 --name=dongche-server api-server-flask-flask_api
+
+## 本地ip
 <br />
 
 ## ✨ API

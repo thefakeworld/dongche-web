@@ -14,10 +14,11 @@ import jwt
 
 from api.utills import create_success_response
 
-from .models import CarSeries, db, Users, JWTTokenBlocklist, CarInfo
+from .models import CarSeries, db, Users, JWTTokenBlocklist, CarInfo, CarInfoDetail, object_as_dict
 from .config import BaseConfig
 import requests
 
+from sqlalchemy.sql import func
 from sqlalchemy import text, inspect
 
 rest_api = Api(version="1.0", title="Users API")
@@ -39,6 +40,8 @@ login_model = rest_api.model('LoginModel', {"email": fields.String(required=True
 user_edit_model = rest_api.model('UserEditModel', {"userID": fields.String(required=True, min_length=1, max_length=32),
                                                    "username": fields.String(required=True, min_length=2, max_length=32),
                                                    "email": fields.String(required=True, min_length=4, max_length=64)
+                                                   })
+car_info_detail = rest_api.model('CarInfoDetailModel', {"car_id": fields.String(required=True, min_length=1, max_length=32),
                                                    })
 
 
@@ -276,19 +279,39 @@ class GitHubLogin(Resource):
 class CarsSearch(Resource):
     def get(self):
         print("搜索", request.args)
-        brand_name = request.args.get('brand_name', '')
+        brand_name = request.args.get('brand_name', type=str)
+        series_name = request.args.get('series_name', type=str)
+        dealer_price = request.args.get('dealer_price', type=str)
+        page = request.args.get('page', type=int, default=1)
+        per_page = request.args.get('per_page', type=int, default=10)
 
-        # 车型 指导价格
-        cars = CarInfo.query.filter(CarInfo.brand_name.like(brand_name)).limit(4).all()
+        query = CarInfo.query
+        if brand_name:
+            print('搜索',brand_name)
+            query = query.filter(CarInfo.brand_name.like(brand_name))
+        if series_name:
+            print('搜索',series_name)
+            query = query.filter(CarInfo.series_name.like(series_name))
+        if dealer_price:
+            print('搜索',dealer_price)
+            query = query.filter(CarInfo.dealer_price < dealer_price)
 
-        car_list = [car.toJSON() for car in cars]
-        return car_list
+        total_items = query.count()
+        print(total_items)
+        query = query.offset((page - 1) * per_page).limit(per_page)
+        cars = query.all()
+
+        return create_success_response({
+            'total': total_items,
+            'list': [car.toDICT() for car in cars]
+        })
 
 @rest_api.route('/api/cars_series')
 class CarsSearch(Resource):
     @token_required
     def get(self, user):
         print("搜索", request.args)
+        series_id = request.args.get('series_id', type=str)
         brand_name = request.args.get('brand_name', type=str)
         outter_name = request.args.get('outter_name', type=str)
         dealer_price = request.args.get('dealer_price', type=str)
@@ -296,6 +319,8 @@ class CarsSearch(Resource):
         per_page = request.args.get('per_page', type=int, default=10)
 
         query = CarSeries.query
+        if series_id:
+            query = query.filter(CarSeries.id == series_id)
         if brand_name:
             print('搜索',brand_name)
             query = query.filter(CarSeries.brand_name.like(brand_name))
@@ -315,4 +340,50 @@ class CarsSearch(Resource):
             'total': total_items,
             'list': [car.toDICT() for car in cars]
         })
+
+
+@rest_api.route('/api/cars/info/detail')
+class CarsInfoDetailSearch(Resource):
+    # @token_required
+    # @rest_api.expect(car_info_detail)
+    def get(self):
+        print("搜索", request.args)
+        car_id = request.args.get('car_id', type=str)
+
+        sql = text("SELECT * FROM car_info_detail WHERE car_id = :car_id")
+        result = db.session.execute(sql, params={"car_id": car_id})
+        print(result)
+        rows = result.fetchall()
+
+        data = {}
+        for row in rows:
+            print(row)
+            key = row.key
+            value = row.value
+            data[key] = value
+         
+        return create_success_response(data)
     
+
+@rest_api.route('/api/cars/img')
+class CarsInfoDetailSearch(Resource):
+    # @token_required
+    def get(self):
+        print("搜索", request.args)
+        name = request.args.get('name', type=str)
+        car_id = request.args.get('car_id', type=str)
+
+        sql = text("SELECT * FROM car_image_wg WHERE car_id = :car_id limit 10")
+        if(name == 'gft'):
+            sql = text("SELECT * FROM car_image_wg WHERE car_id = :car_id limit 10")
+        if(name == 'ns'):
+            sql = text("SELECT * FROM car_image_ns WHERE car_id = :car_id limit 10")
+        if(name == 'kj'):
+            sql = text("SELECT * FROM car_image_kj WHERE car_id = :car_id limit 10")
+
+        print(sql)
+        result = db.session.execute(sql, params={"car_id": car_id})
+        rows = result.fetchall()
+        list=[{"name": row.name, "car_id": row.car_id, "pic_url": row.pic_url} for row in rows]
+         
+        return create_success_response(list)

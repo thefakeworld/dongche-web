@@ -91,6 +91,16 @@ class JWTTokenBlocklist(db.Model):
         db.session.commit()
 
 
+class CarBrand(db.Model):
+    
+    brand_name = db.Column(db.String(50))
+    brand_id = db.Column(db.String(50), primary_key=True)
+    pinyin = db.Column(db.String(50))
+    def toDICT(self):
+        return object_as_dict(self)
+
+    def toJSON(self):
+        return self.toDICT()
 
 class CarInfo(db.Model):
     
@@ -134,6 +144,32 @@ class CarSeries(db.Model):
     def toJSON(self):
 
         return self.toDICT()
+    
+
+class CarInfoDetail(db.Model):
+    id = db.Column(db.String(50), primary_key=True)
+    car_id = db.Column(db.String(50))
+    series_id = db.Column(db.String(50))
+    key = db.Column(db.String(50))
+    value = db.Column(db.String(50))
+    def toDICT(self):
+        return object_as_dict(self)
+
+    def toJSON(self):
+        return self.toDICT()
+
+
+# class CarImageWg(db.Model):
+#     car_id = db.Column(db.Integer())
+#     series_id = db.Column(db.Integer())
+#     pic_url = db.Column(db.String(150))
+#     large_pic_url = db.Column(db.String(150))
+#     name = db.Column(db.String(50))
+#     def toDICT(self):
+#         return object_as_dict(self)
+
+#     def toJSON(self):
+#         return self.toDICT()
     
 #  继续改写 https://www.orcode.com/question/440549_ke84c5.html
 # rows = conn.execute(query)

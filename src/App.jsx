@@ -7,8 +7,21 @@ import HomePage from './home';
 import DealerPrice from './dealer-price'
 import HomeLayout from './layout/home-layout';
 import { getSession } from './service/storage';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import QuotationPage from './quotation';
 
 function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/quotation" element={<QuotationPage />} />
+        {/* <Route path="/home" element={<Bar />} /> */}
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+function App2() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const showModal = () => {

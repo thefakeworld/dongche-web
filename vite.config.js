@@ -17,8 +17,8 @@ export default defineConfig({
     // 配置代理
     proxy: {
       "/api": {
-        // target: "http://10.0.16.3:5000",
-        target: "http://10.0.16.3:14267",
+        // target: "http://124.221.206.68:3100",
+        target: "http://127.0.0.1:5000",
         changeOrigin: true,
       },
     },

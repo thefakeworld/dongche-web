@@ -2,12 +2,12 @@ import { useState } from 'react'
 import { Button, Image, Table } from 'antd'
 import { getCarSeriesPage, getCarInfo } from '../service/home'
 import { AdvancedSearchForm } from './search'
-import styles from  './index.module.less'
-import PriceModal from './price-modal'
+import styles from './index.module.less'
+import PriceDrawer, { usePriceDrawer } from './drawer'
 
 function HomePage() {
-  const [state, setState] = useState({})
   const [dataSource, setDataSource] = useState([]);
+  const drawerProps = usePriceDrawer()
 
   const columns = [
     {
@@ -57,31 +57,27 @@ function HomePage() {
       title: '操作',
       dataIndex: 'operation',
       render(text, record) {
-        return <Button onClick={() => handleOpen(record)}>报价单</Button>
+        return <Button onClick={() => handleDrawerOpen(record)}>报价</Button>
       }
     },
   ];
 
   const handleSearch = async (values) => {
-    const {list} = await getCarInfo(values);
+    const { list } = await getCarInfo(values);
     setDataSource(list)
   }
-  const handleOpen = (values) => {
-    setState({
-      open: true,
-      data: values
-    })
+  const handleDrawerOpen = (values) => {
+    drawerProps.showDrawer(values)
   }
 
-  const handleClose = () => setState({open: false})
 
 
   return (
     <>
       <div className={styles.home}>
-        <PriceModal onOk={handleClose} onCalcel={handleClose} {...state} />
-        <AdvancedSearchForm onSearch={handleSearch}/>
-        <Table rowKey={'id'} dataSource={dataSource} columns={columns} />
+        <PriceDrawer {...drawerProps} />
+        <AdvancedSearchForm onSearch={handleSearch} />
+        <Table rowKey={'car_id'} dataSource={dataSource} columns={columns} />
       </div>
     </>
   )

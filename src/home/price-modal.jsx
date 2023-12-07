@@ -3,14 +3,6 @@ import { Modal, Form, Input } from 'antd'
 import { login } from '../service/auth';
 import { saveSession } from '../service/storage';
 
-function addScript(url) {
-  var script = document.createElement('script');
-  script.type = 'application/javascript';
-  script.src = url;
-  document.head.appendChild(script);
-}
-addScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
-
 function PriceModal(props) {
   const [form] = Form.useForm();
   const onFinish = async (values) => {

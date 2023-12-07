@@ -273,7 +273,15 @@ class GitHubLogin(Resource):
                     "token": token,
                 }}, 200
     
-
+@rest_api.route('/api/cars/data')
+class CarsData(Resource):
+    def get(self):
+        print("搜索", request.args)
+        car_id = request.args.get('car_id', type=str)
+        query = CarInfo.query.filter(CarInfo.car_id == car_id)
+        carData = query.first()
+        print('data', carData)
+        return create_success_response(carData.toJSON())
 
 @rest_api.route('/api/cars/list')
 class CarsSearch(Resource):
@@ -352,12 +360,12 @@ class CarsInfoDetailSearch(Resource):
 
         sql = text("SELECT * FROM car_info_detail WHERE car_id = :car_id")
         result = db.session.execute(sql, params={"car_id": car_id})
-        print(result)
+        # print(result)
         rows = result.fetchall()
 
         data = {}
         for row in rows:
-            print(row)
+            # print(row)
             key = row.key
             value = row.value
             data[key] = value
@@ -387,3 +395,31 @@ class CarsInfoDetailSearch(Resource):
         list=[{"name": row.name, "car_id": row.car_id, "pic_url": row.pic_url} for row in rows]
          
         return create_success_response(list)
+    
+
+@rest_api.route('/api/cars/img/dongche')
+class CarsImageDongCheSearch(Resource):
+    # @token_required
+    def get(self):
+        series_id = request.args.get('series_id', type=str)
+        car_id = request.args.get('car_id', type=str)
+        url = f"https://www.dongchedi.com/motor/pc/car/series/get_series_picture?aid=1839&app_name=auto_web_pc&series_id={series_id}&category=&offset=0&count=1&car_id={car_id}"
+        headers = {
+            'User-Agent': 'Apifox/1.0.0 (https://apifox.com)',
+            'Accept': '*/*',
+            'Host': 'www.dongchedi.com',
+            'Connection': 'keep-alive'
+        }
+
+        print('get dongche')
+        response = requests.request("GET", url, headers=headers)
+
+        try:
+            dongcheJson = response.json()
+            carList = dongcheJson['data']['picture_list']
+            picurls = carList[0]['pic_url'] or []
+            piclist = picurls[0: 10]
+            return create_success_response(piclist)
+        except:
+            return create_success_response([], msg='没有图片')
+

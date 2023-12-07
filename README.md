@@ -156,6 +156,9 @@ env\Scripts\activate
 ## 通过docker启动容器
 docker run -it -p3100:5005 --name=dongche-server api-server-flask-flask_api
 
+## 后台运行程序
+nohup python3 -m flask run > nohup.out 2>&1 &
+
 ## 本地ip
 <br />
 

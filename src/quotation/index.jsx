@@ -19,11 +19,12 @@ function getQuery(params) {
 
 function QuotationPage() {
 
+  const translate = window.translate;
   // 车辆信息 表单信息
   const [queryParams] = useSearchParams();
 
   const data = useMemo(() => getQuery(queryParams), [queryParams])
-  console.log('data from query', data);
+  // console.log('data from query', data);
   const carImages = useCarImages(data);
   const carInfo = useCarInfo(data)
   const carData = useCarData(data)
@@ -61,7 +62,7 @@ function QuotationPage() {
   const language = useRef(localStorage.getItem('to') || 'chinese_simplified')
 
   const changeLanguage = (value) => {
-    translate.changeLanguage(value)
+    window.translate?.changeLanguage(value)
   };
 
   useEffect(() => {

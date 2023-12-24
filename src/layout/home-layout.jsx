@@ -1,6 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { LaptopOutlined, NotificationOutlined, UserOutlined } from '@ant-design/icons';
 import { Breadcrumb, Layout, Menu, theme } from 'antd';
+import { Outlet } from 'react-router-dom';
+import { useBoolean } from 'ahooks';
+import { SESSION_STORAGE_KEY, addStorageListener, getSession } from '../service/storage';
+import LoginModal from '../home/login-modal';
+
 const { Header, Content, Footer, Sider } = Layout;
 const items1 = ['1', '2', '3'].map((key) => ({
   key,
@@ -28,6 +33,24 @@ const HomeLayout = (props) => {
     token: { colorBgContainer },
   } = theme.useToken();
 
+
+  const [openState, {setFalse, setTrue}] = useBoolean();
+
+  useEffect(() => {
+    
+    const session = getSession();
+    if(!session) {
+      setTrue();
+    }
+
+    return addStorageListener(SESSION_STORAGE_KEY, (val) => {
+      console.log('监听 session');
+      if(!val) {
+        setTrue();
+      }
+    })
+  }, [])
+
   return (
     <Layout style={{height: '100%'}}>
       <Header
@@ -36,7 +59,7 @@ const HomeLayout = (props) => {
           alignItems: 'center',
         }}
       >
-        <div className="header-logo" style={{color: 'white'}}>logo</div>
+        <div className="header-logo" style={{color: 'white'}}>阿瑞斯</div>
       </Header>
       <Content
         style={{
@@ -57,17 +80,17 @@ const HomeLayout = (props) => {
               minHeight: 280,
             }}
           >
-            {children}
+            {openState ? <LoginModal open={openState} onCancel={setFalse} /> : <Outlet />}
           </Content>
         </Layout>
       </Content>
-      <Footer
+      {/* <Footer
         style={{
           textAlign: 'center',
         }}
       >
-        懂车 ©2023 Created
-      </Footer>
+        ©2023 阿瑞斯
+      </Footer> */}
     </Layout>
   );
 };

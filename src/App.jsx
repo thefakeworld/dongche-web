@@ -7,17 +7,19 @@ import HomePage from './home';
 import DealerPrice from './dealer-price'
 import HomeLayout from './layout/home-layout';
 import { getSession } from './service/storage';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, useRoutes } from 'react-router-dom';
 import QuotationPage from './quotation';
+import routes from './routes';
+
 
 function App() {
+
+  const routesElement = useRoutes(routes);
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/quotation" element={<QuotationPage />} />
-        {/* <Route path="/home" element={<Bar />} /> */}
-      </Routes>
-    </BrowserRouter>
+    <>
+      {routesElement}
+    </>
   );
 }
 
@@ -49,7 +51,7 @@ function App2() {
   return (
     <>
       <HomeLayout>
-        {/* <LoginModal open={isModalOpen} onCancel={handleCancel} /> */}
+        <LoginModal open={isModalOpen} onCancel={handleCancel} />
         <HomePage />
       </HomeLayout>
     </>

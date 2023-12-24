@@ -31,6 +31,7 @@ export const AdvancedSearchForm = ({ onSearch }) => {
       <Form.Item
         label="品牌"
         name="brand_name"
+        rules={[{required: true}]}
       >
         <Input />
       </Form.Item>

@@ -17,7 +17,17 @@ export default defineConfig({
     // 配置代理
     proxy: {
       "/api": {
-        // target: "http://124.221.206.68:3100",
+        target: "http://127.0.0.1:5001",
+        changeOrigin: true,
+      },
+    },
+  },
+  preview: {
+    host: '0.0.0.0',
+    port: 5173,
+    // 配置代理
+    proxy: {
+      "/api": {
         target: "http://127.0.0.1:5000",
         changeOrigin: true,
       },

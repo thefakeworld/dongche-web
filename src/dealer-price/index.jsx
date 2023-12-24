@@ -19,7 +19,6 @@ function HomePage() {
       <div className={styles.home}>
         <UserInfoForm />
         <AdvancedSearchForm onSearch={handleSearch}/>
-        
       </div>
     </>
   )

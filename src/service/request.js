@@ -1,6 +1,6 @@
 import axios from "axios";
 import { message } from "antd";
-import { getSession, removeSession } from "./storage";
+import { getLocalSecret, getSession, removeSession } from "./storage";
 
 
 const request = axios.create({
@@ -10,12 +10,16 @@ const request = axios.create({
 
 request.interceptors.request.use((config) => {
   const session = getSession();
+  const secret_key = getLocalSecret();
   config.headers.Authorization = session?.token;
+  if(secret_key) {
+    config.headers['x-secret-key'] = secret_key;
+  }
   return config;
 });
 request.interceptors.response.use(
   async (res) => {
-    console.log('res', res);
+    console.log('拦截响应', res);
     if(Array.isArray(res.data)) {
       return res.data
     }
@@ -38,7 +42,9 @@ request.interceptors.response.use(
     }
   },
   async (error) => {
-    const { status } = error?.response;
+    console.error('请求错误', error)
+    const status = error?.response?.status;
+
     const { code, msg } = error?.response?.data || {};
     switch (status) {
       case 401: {
@@ -46,10 +52,10 @@ request.interceptors.response.use(
         break;
       }
       default: {
-        message.error(msg || "服务器异常")
-        removeSession();
+        
       }
     }
+    message.error(msg || "服务器异常")
     return Promise.reject(error);
   }
 );

@@ -12,7 +12,11 @@ const options = [
   {
     "id": "russian",
     "name": "Русский язык"
-},
+  },
+  {
+    "id": "arabic",
+    "name": "بالعربية"
+  },
 ]
 
 const languageOptions = options.map(item => ({ label: item.name, value: item.id }))

@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Button, Image, Table } from 'antd'
+import { useMemo, useState } from 'react'
+import { Button, Image, Table, Select } from 'antd'
 import { getCarSeriesPage, getCarInfo } from '../service/home'
 import { AdvancedSearchForm } from './search'
 import styles from './index.module.less'
@@ -70,14 +70,25 @@ function HomePage() {
     drawerProps.showDrawer(values)
   }
 
+  const carOptions = useMemo(() => {
+    return dataSource?.map(item => {
+      return {
+        ...item,
+        value: item.car_id,
+        label: `${item.car_year} ${item.series_name} ${item.car_name} ${item.official_price}`
+      }
+    })
+  }, [dataSource])
 
+  const filterOption = (input, option) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
 
   return (
     <>
       <div className={styles.home}>
         <PriceDrawer {...drawerProps} />
         <AdvancedSearchForm onSearch={handleSearch} />
-        <Table rowKey={'car_id'} dataSource={dataSource} columns={columns} />
+        <Select options={carOptions} showSearch optionFilterProp="children" filterOption={filterOption} />
+        {/* <Table rowKey={'car_id'} dataSource={dataSource} columns={columns} /> */}
       </div>
     </>
   )

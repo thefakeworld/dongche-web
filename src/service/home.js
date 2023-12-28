@@ -18,6 +18,7 @@ export function getCarInfoDetail(params) {
 export function getCarImages(params) {
   return request.get("/cars/img/dongche", { params });
 }
-// export function getCarImages(params) {
-//   return request.get("/cars/img", { params });
-// }
+
+export function getCarBrands(params) {
+  return request.get("/cars/brands", { params });
+}

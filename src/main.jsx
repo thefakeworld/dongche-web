@@ -5,6 +5,7 @@ import zhCN from 'antd/locale/zh_CN';
 import { ConfigProvider } from 'antd';
 import { BrowserRouter } from 'react-router-dom';
 import './index.css'
+import './styles/h5.less'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

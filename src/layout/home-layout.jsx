@@ -63,7 +63,7 @@ const HomeLayout = (props) => {
       </Header>
       <Content
         style={{
-          padding: '0 50px',
+          padding: '16 24px',
           height: '100%',
           overflow: 'auto',
         }}

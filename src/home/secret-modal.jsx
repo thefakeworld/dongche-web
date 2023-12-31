@@ -8,10 +8,10 @@ export default function SecretModal(props) {
   const [form] = Form.useForm();
   const onFinish = async (values) => {
     const res= await getSecret(values);
+    saveLocalSecret(res.secret_key);
     console.log('Success:', res);
     props.onCancel();
     props.onOk(res.secret_key);
-    saveLocalSecret(res.secret_key);
   };
   
   const onFinishFailed = (errorInfo) => {

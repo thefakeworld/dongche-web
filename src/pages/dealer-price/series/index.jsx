@@ -5,22 +5,6 @@ import { getCarSeriesPage } from "../../../service/home";
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 
-const data2 = [
-  {
-    title: 'Ant Design Title 1',
-  },
-  {
-    title: 'Ant Design Title 2',
-  },
-  {
-    title: 'Ant Design Title 3',
-  },
-  {
-    title: 'Ant Design Title 4',
-  },
-];
-
-
 export default function SeriesIndex() {
 
   const navigate = useNavigate();

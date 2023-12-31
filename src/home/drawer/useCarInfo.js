@@ -19,6 +19,11 @@ export const useCarImages = (data) => {
     return state
 }
 
+/**
+ * 
+ * @param {*} data 
+ * @returns 
+ */
 export const useCarInfo = (data) => {
     const [state, setState] = useState({ })
     

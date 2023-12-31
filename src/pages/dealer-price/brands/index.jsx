@@ -1,5 +1,5 @@
-import React from 'react';
-import { Avatar, List } from 'antd';
+import React, { useState } from 'react';
+import { Avatar, Input, List } from 'antd';
 import { useRequest } from "ahooks"
 import { getCarBrands } from "../../../service/home";
 import { useNavigate } from 'react-router-dom';
@@ -11,10 +11,15 @@ export default function BrandsIndex() {
 
   const navigate = useNavigate();
 
+  const [keyword, setKeyword] = useState('');
+
+  const handleChange = (e) => setKeyword(e.target.value)
+
   return <List
     itemLayout="horizontal"
     loading={loading}
-    dataSource={data}
+    dataSource={data?.filter(item => item.brand_name.includes(keyword))}
+    header={<Input.Search onChange={handleChange}/>}
     renderItem={(item, index) => (
       <List.Item onClick={() => navigate('/h5/series/'+item.brand_id)}>
         <List.Item.Meta

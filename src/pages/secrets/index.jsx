@@ -12,6 +12,9 @@ export default function SecretPage() {
     {
       title: '密钥',
       dataIndex: 'secret_key',
+      render(text){
+        return <Typography.Text copyable>{text}</Typography.Text>
+      }
     },
     {
       title: '创建时间',

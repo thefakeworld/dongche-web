@@ -2,11 +2,18 @@ import { useState } from 'react'
 import { Modal, Form, Input } from 'antd'
 import { login } from '@/service/auth';
 import { saveSession } from '@/service/storage';
+import { useNavigate } from 'react-router-dom';
+
 
 function LoginModal(props) {
+  const navigate = useNavigate();
   const [form] = Form.useForm();
   const onFinish = async (values) => {
     const res = await login(values);
+
+    if(props.from == 'login') {
+      navigate(-1);
+    }
     console.log('Success:', res);
     props.onCancel();
     saveSession(res);

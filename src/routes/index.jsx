@@ -9,6 +9,8 @@ import BrandsIndex from "../pages/dealer-price/brands";
 import H5Layout from "../layout/h5-layout";
 import SeriesIndex from "../pages/dealer-price/series";
 import CarsIndex from "../pages/dealer-price/cars";
+import DealerPrice from "@/pages/dealer-price";
+import CarPriceIndex from "@/pages/dealer-price/price";
 
 const routes = [
   {
@@ -25,7 +27,7 @@ const routes = [
       },
       {
         path: 'login',
-        element: <LoginModal open={true} />,
+        element: <LoginModal open={true} from="login" />,
       },
       {
         path: 'secrets',
@@ -51,6 +53,10 @@ const routes = [
       {
         path: 'cars/:id',
         element: <CarsIndex />,
+      },
+      {
+        path: 'price/:id',
+        element: <CarPriceIndex />,
       }
     ]
   },

@@ -3,6 +3,7 @@ import { Image, List, Space } from 'antd';
 import { useRequest } from "ahooks"
 import { getCarSeriesPage } from "../../../service/home";
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { getBrandSeriesList, getTransformSeriesList } from "../../../service/dongchedi";
 
 
 export default function SeriesIndex() {
@@ -10,8 +11,7 @@ export default function SeriesIndex() {
   const navigate = useNavigate();
   const params = useParams();
   
-  console.log(params);
-  const { data, loading } = useRequest(getCarSeriesPage, {
+  const { data, loading } = useRequest(getBrandSeriesList, {
     onBefore(params) {
       console.log('ass params', params)
     },
@@ -22,16 +22,18 @@ export default function SeriesIndex() {
     }]
   });
 
+  console.log('series data', getTransformSeriesList(data));
+  const list = getTransformSeriesList(data)
 
   return <List
     itemLayout="horizontal"
     loading={loading}
-    dataSource={data?.list}
+    dataSource={list}
     renderItem={(item, index) => (
-      <List.Item  onClick={() => navigate('/h5/cars/'+item.id)}>
+      <List.Item  onClick={() => navigate('/h5/cars/'+item.series_id)}>
         <List.Item.Meta
-          avatar={<Image height={30} width={45}  src={item.cover_url} />}
-          title={item.outter_name}
+          avatar={<Image height={30} width={45}  src={item.image_url} />}
+          title={item.series_name}
         />
       </List.Item>
     )}

@@ -5,7 +5,7 @@ import { getLocalSecret, getSession, removeSession } from "./storage";
 
 const request = axios.create({
   baseURL: "/api",
-  timeout: 30000,
+  timeout: 300000,
 });
 
 request.interceptors.request.use((config) => {
@@ -20,6 +20,10 @@ request.interceptors.request.use((config) => {
 request.interceptors.response.use(
   async (res) => {
     console.log('拦截响应', res);
+    if(res.data.status === 0 || res.data.status === 'success') { 
+      return res.data
+    }
+
     if(Array.isArray(res.data)) {
       return res.data
     }

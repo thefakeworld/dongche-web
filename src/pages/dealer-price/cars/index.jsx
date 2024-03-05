@@ -3,6 +3,7 @@ import { Avatar, List, Space, message } from 'antd';
 import { useRequest, useLocalStorageState } from "ahooks"
 import { getCarInfo } from "../../../service/home";
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { getSeriesCarList, getTransformSeriesCarList } from "../../../service/dongchedi";
 
 
 export default function CarsIndex() {
@@ -17,7 +18,7 @@ export default function CarsIndex() {
     },
   );
 
-  const { data, loading } = useRequest(getCarInfo, {
+  const { data, loading } = useRequest(getSeriesCarList, {
     defaultParams: [{
       page: 1,
       pageSize: 99999,
@@ -25,22 +26,23 @@ export default function CarsIndex() {
     }]
   });
 
+  const list = getTransformSeriesCarList(data)
 
   return <List
     itemLayout="horizontal"
     loading={loading}
-    dataSource={data?.list}
-    renderItem={(item, index) => (
+    dataSource={list}
+    renderItem={(item) => (
       <List.Item extra={item.dealer_price} onClick={() => {
         if(item.dealer_price == '暂无报价') {
           return message.info('暂无报价')
         }
         setCarData(item); 
-        navigate('/h5/price/'+item.car_id)
+        navigate('/h5/price/'+item.id)
       }}>
         <List.Item.Meta
-          title={item.car_name}
-          description={<Space>年份：{item.car_year}</Space>}
+          title={item.name}
+          description={<Space>年份：{item.year}</Space>}
         />
       </List.Item>
     )}

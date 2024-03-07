@@ -9,6 +9,8 @@ export function calculatePrice(data, car_info_record) {
     const tax_advance_rate = Number(data.tax_advance_rate) || 0.1;
     const exchange_rate = Number(data.exchange_rate);
     const estimated_profit = Number(data.estimated_profit);
+    const costFOB = Number(data.costFOB);
+    const costCIF = Number(data.costCIF);
 
     // 模拟数据库查询结果
     // const car_info_record = {
@@ -19,7 +21,7 @@ export function calculatePrice(data, car_info_record) {
     // };
 
     const official_price = Number(car_info_record.official_price.replace('万', '')) * 10000;
-    const dealer_price = Number(car_info_record.dealer_price.replace('万', '')) * 10000;
+    // const dealer_price = Number(car_info_record.dealer_price.replace('万', '')) * 10000;
 
     // // 如果前端没有提供车价优惠，则计算得出
     // const carDiscount = car_discount || (official_price - dealer_price);
@@ -57,6 +59,15 @@ export function calculatePrice(data, car_info_record) {
 
     // 最终报价
     const final_price = exw_cost + estimated_profit;
+    const priceFOB = final_price + costFOB;
+    const priceCIF = final_price + costFOB + costCIF;
+    
+    console.log(exw_cost, costFOB, costCIF);
+    console.log('Price: ', {
+      final_price,
+      priceFOB,
+      priceCIF
+    });
 
     // 计算过程
     const calculation_details = {
@@ -76,6 +87,8 @@ export function calculatePrice(data, car_info_record) {
       invoice_price: invoice_price.toFixed(2),
       exw_cost: exw_cost.toFixed(2),
       price:final_price.toFixed(2), 
+      priceFOB:priceFOB.toFixed(2), 
+      priceCIF:priceCIF.toFixed(2), 
       tax_refund:tax_refund.toFixed(2), 
       calculation_details };
   } catch (error) {

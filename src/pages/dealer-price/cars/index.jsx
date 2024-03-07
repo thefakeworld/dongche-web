@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Avatar, List, Space, message } from 'antd';
 import { useRequest, useLocalStorageState } from "ahooks"
 import { getCarInfo } from "../../../service/home";

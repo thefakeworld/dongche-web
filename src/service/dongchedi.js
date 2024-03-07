@@ -40,3 +40,26 @@ export function getTransformSeriesCarList(res) {
   })
 }
 
+
+export function getCarInfoList(params) {
+  return request.post("/motor/pc", {
+    url: 'https://m-sinfonlinea.dcdapp.com/motor/car_page/m/v6/get_entity_json?aid=1556&device_id=7321972234674210343&master_aid=&user_unique_id=7321972234674210343&os_version=Windows%2011%20x64&ma_version=5.10.335&app_name=wechat&data_from=tt_mp&device_platform=windows&device_type=microsoft&device_brand=microsoft&sdk_verison=3.2.5&api_version=2&version_code=0&city_name=%E6%9D%AD%E5%B7%9E&gps_city_name=&car_id_list=' + params.car_id,
+  });
+}
+export function getTransformCarInfo(res, car_id) {
+  if(!res) return [{}, {}];
+  const { car_info } = res.data
+  const carInfoItem = car_info.find(item => item.car_id === car_id)
+  const { info, ...carData } = carInfoItem;
+  const carExtraInfo = Object.keys(info).reduce((pre, cur) => {
+    pre[cur] = info[cur].value
+    return pre
+  }, {})
+  return [carData, carExtraInfo]
+}
+
+export function getWiseRate() {
+  return request.get("/wise/rate");
+}
+
+

@@ -3,6 +3,7 @@ import { Avatar, Input, List, Anchor, Row, Col } from 'antd';
 import { useRequest } from "ahooks"
 import { getCarBrands } from "../../../service/home";
 import { getAllCarBrand } from "../../../service/dongchedi";
+import styles from  './index.module.less'
 
 import { useNavigate } from 'react-router-dom';
 
@@ -25,7 +26,6 @@ export default function BrandsIndex() {
     }))
   }, [allBrandData])
 
-  console.log('d222', pinyinList);
 
   const navigate = useNavigate();
 
@@ -39,6 +39,7 @@ export default function BrandsIndex() {
       <Row>
         <Col span={22}>
           <List
+            className={styles.list}
             itemLayout="horizontal"
             loading={loading}
             dataSource={keyword ? allBrandData?.filter(item => item.info.brand_name?.includes(keyword)) : allBrandData}

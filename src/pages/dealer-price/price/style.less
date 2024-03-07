@@ -1,20 +1,70 @@
 
+.formItem {
+  display: flex;
+  align-items: center;
+    .ant-input-number  {
+      width: 100% !important;
+    }
+  label {
+    font-weight: bold;
+  }
+  .unit {
+    &.red {
+      color: red;
+    }
+    &.green {
+      color: green;
+    }
+    &.blue {
+      color: blue;
+    }
+  }
+  .extra {
+    margin-top: 8px;
+    height: 32px;
+    vertical-align: middle;
+    line-height: 32px;
+  }
+
+  .price-rmb {
+    background-color: red;
+  }
+
+  .main {
+    flex: 1;
+  }
+  column-gap: 16px;
+  .top-label {
+    display: flex;
+    justify-content: space-between;
+  }
+}
+
 .app-h5 {
+
+  .car-info-item {
+    display: flex;
+    column-gap: 16px;
+    align-items: center;
+    .right {
+      flex: 1;
+    }
+  }
 
   .car-price {
     padding-block: 16px;
     .ant-form-item {
       width: 100%;
     }
-    .calc-form {
-      padding: 16px;
-      border-radius: 4px;
-      border: 1px solid #9b4dca;
-      margin-bottom: 16px;
-      .ant-form-item-label {
-        font-size: 14px;
-        font-weight: bold;
-      }
+  }
+  .calc-form {
+    padding: 16px;
+    border-radius: 4px;
+    border: 1px solid #eee;
+    margin-bottom: 16px;
+    .ant-form-item-label {
+      font-size: 14px;
+      font-weight: bold;
     }
   }
 }

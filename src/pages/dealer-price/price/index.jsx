@@ -1,82 +1,78 @@
 import { getCarInfoDetail } from '@/service/home';
 import { useUpdateEffect, useRequest, useLocalStorageState, useBoolean } from 'ahooks';
-import { Button, List, Form, Input, Row, Select, Space, theme, Divider, InputNumber, Spin } from 'antd';
+import { Button, List, Form, Input, Row, Select, Space, Tabs, Divider, InputNumber, Spin } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { calculatePrice } from './hooks';
 import './style.less'
 import { useState } from 'react';
 import SecretModal from '@/home/secret-modal';
 import { SECRET_KEY, getLocalSecret } from '@/service/storage';
+import { getCarInfoList, getTransformCarInfo, getWiseRate } from "../../../service/dongchedi";
+import { RightOutlined } from '@ant-design/icons';
+import FormItem from './FormItem';
 
-const getDiscountPrice = (carData) => {
-  const officialPrice = parseFloat(carData.official_price.replace('万', '')) * 10000;
-  const dealerPrice = parseFloat(carData.dealer_price.replace('万', '')) * 10000;
+// const [carData] = useLocalStorageState(
+//   'car-data',
+//   {
+//     defaultValue: {},
+//   },
+// );
+
+
+const getDiscountPrice = (dealer_price, official_price) => {
+  const officialPrice = parseFloat(official_price.replace('万', '')) * 10000;
+  const dealerPrice = parseFloat(dealer_price.replace('万', '')) * 10000;
   // 计算车价优惠并更新输入框
   const discountValue = Math.max(0, officialPrice - dealerPrice);
-  
+
   return Number(discountValue).toFixed(2)
 }
 
-export default function CarPriceIndex({ onSearch }) {
+export default function CarPriceIndex() {
   const params = useParams();
-  const { token } = theme.useToken();
   const [form] = Form.useForm();
-
   const [calcData, setCalcData] = useState();
+  const navigate = useNavigate();
+  const [openState, { setFalse, setTrue }] = useBoolean();
 
-  const [carData] = useLocalStorageState(
-    'car-data',
-    {
-      defaultValue: {},
-    },
-  );
-
-  const { data, loading } = useRequest(getCarInfoDetail, {
-    cacheKey: 'brands',
+  const { data, loading } = useRequest(getCarInfoList, {
+    // cacheKey: 'car-info' + params.id,
+    // cacheTime: 12 * 60 * 60 * 1000,
     defaultParams: [{
       car_id: params.id
     }]
   });
+  const [carData, carInfo] = getTransformCarInfo(data, params.id)
+  const { data: wiseRate } = useRequest(getWiseRate);
 
-  const formStyle = {
-    maxWidth: 'none',
-    background: token.colorFillAlter,
-    borderRadius: token.borderRadiusLG,
-    padding: 24,
-  };
-
-  console.log('carData', carData);
+  console.log('wiseRate', wiseRate);
 
   useUpdateEffect(() => {
     if (carData.car_id) {
-      form.setFieldValue('car_discount', getDiscountPrice(carData))
+      form.setFieldValue('car_discount', getDiscountPrice(carData.dealer_price, carInfo.official_price))
     }
-    console.log('car data', data);
-  }, [data])
 
+    if (wiseRate) {
+      form.setFieldValue('exchange_rate', wiseRate.value)
+    }
+  }, [data, wiseRate])
 
   const onFinish = (values) => {
-    const res = calculatePrice(values, { ...carData, fuel_form: data.fuel_form })
+    const res = calculatePrice(values, { dealer_price: carData.dealer_price, official_price: carInfo.official_price, fuel_form: carInfo.fuel_form })
     setCalcData(res);
     console.log('Received values: ', values);
     console.log('最终结果: ', res);
   };
 
-  const navigate = useNavigate()
-
-  const [secret] = useLocalStorageState(SECRET_KEY, {
-    defaultValue: getLocalSecret(),
-  },)
 
   const onDodnload = (values) => {
-    if(!getLocalSecret()) {
+    if (!getLocalSecret()) {
       setTrue()
-    }else {
+    } else {
       navigate(`/quotation?price=${calcData?.price}&car_id=${carData.car_id}&series_id=${carData.series_id}`)
     }
   };
 
-  const [openState, {setFalse, setTrue}] = useBoolean();
 
   return (
     <>
@@ -88,14 +84,12 @@ export default function CarPriceIndex({ onSearch }) {
         // layout="inline"
         // layout="vertical"
         layout="horizontal"
-        labelCol={{ xs: 8 }}
-        wrapperCol={{ xs: 16}}
+        labelCol={{ xs: 14 }}
+        wrapperCol={{ xs: 10 }}
         // style={formStyle}
-        initialValues={{ remember: true }}
         onFinish={onFinish}
         autoComplete="off"
       >
-        
 
         {/* <Form.Item
           label="交易方式"
@@ -104,94 +98,225 @@ export default function CarPriceIndex({ onSearch }) {
           <Select options={dealTypeOptions} />
         </Form.Item> */}
         <Spin spinning={loading}>
-        <div className="calc-form">
-          <div>{carData.brand_name} {carData.series_name} {carData.car_name}</div>
-          <div>年份：{carData.car_year} 经销商报价：{carData.dealer_price}</div>
-        </div>
-          <div className="calc-form">
-
-            <Form.Item
-              label="车价优惠"
-              name="car_discount"
-            >
-              <InputNumber  addonAfter="￥"/>
-            </Form.Item>
-            <Form.Item
-              label="试点通道费"
-              name="channel_fee"
-              initialValue={1500}
-            >
-              <InputNumber  addonAfter="￥"/>
-            </Form.Item>
-            <Form.Item
-              label="上牌服务费"
-              name="license_fee"
-              initialValue={3600}
-
-            >
-              <InputNumber  addonAfter="￥"/>
-            </Form.Item>
-            <Form.Item
-              label="国内运费"
-              name="domestic_shipping"
-              initialValue={1200}
-            >
-              <InputNumber addonAfter="￥" />
-            </Form.Item>
-            {/* 垫税成本是否自动计算10% */}
-            <Form.Item
-              label="垫税成本"
-              name="tax_advance_rate"
-              initialValue={0.1}
-            >
-              <InputNumber type='number' />
-            </Form.Item>
-            <Form.Item
-              label="美元对人民币汇率"
-              name="exchange_rate"
-              required={false}
-              initialValue={1.73}
-              rules={[{required: true}]}
-            >
-              <InputNumber />
-            </Form.Item>
-            <Form.Item
-              label="预计利润"
-              name="estimated_profit"
-              initialValue={0}
-            >
-              <InputNumber  addonAfter="$"/>
-            </Form.Item>
-
-            <Form.Item
-              style={{
-                textAlign: 'right',
-                marginLeft: 'auto',
-              }}
-            >
-              <Space size="small">
-                <Button type="primary" htmlType="submit">
-                  计算
-                </Button>
-                <Button
-                  onClick={() => {
-                    form.resetFields();
-                  }}
-                >
-                  清空
-                </Button>
-              </Space>
-            </Form.Item>
+          <div className="car-info-item">
+            <div className="left">
+              <div className="title">
+                <b>选择车型</b>
+              </div>
+              <div className="label">Selecting Model</div>
+            </div>
+            <div className="right" onClick={() => history.back()}>
+              <div>{carData.series_name} </div>
+              <div>{carData.car_year}款 {carData.car_name}</div>
+            </div>
+            <div className="extra" onClick={() => history.back()}>
+              <RightOutlined />
+            </div>
           </div>
+          <Tabs
+            defaultActiveKey="1"
+            centered
+            items={[
+              {
+                label: `EXW`,
+                key: '1',
+                children: (
+                  <div className="">
 
-          <div className="calc-form">
-            <div>退税：{calcData?.tax_refund}元</div>
-            <div>开票价：{calcData?.invoice_price}元</div>
-            <Space>EXW报价{calcData?.price}USD <Button onClick={onDodnload} disabled={!calcData} ghost type='primary'>下载报价单</Button></Space>
+                    <FormItem label="Discount" unit="RMB" extra="￥">
+                      <Form.Item
+                        label="车价优惠"
+                        name="car_discount"
+                        initialValue={0}
+                      >
+                        <InputNumber />
+                      </Form.Item>
+                    </FormItem>
+                    {/* <FormItem label="Dealer Price" unit="RMB" extra="￥">
+              <Form.Item
+                label="经销商报价"
+                name="dealer_price"
+                hidden
+              >
+                <InputNumber />
+              </Form.Item>
+            </FormItem> */}
+                    <FormItem label="Pilot Channel Fee" unit="RMB" extra="￥">
+                      <Form.Item
+                        label="试点通道费"
+                        name="channel_fee"
+                        initialValue={1500}
+                      >
+                        <InputNumber />
+                      </Form.Item>
+                    </FormItem>
+                    <FormItem label="Registration Service Fee" unit="RMB" extra="￥">
+                      <Form.Item
+                        label="上牌服务费"
+                        name="license_fee"
+                        initialValue={3600}
 
-          </div>
+                      >
+                        <InputNumber />
+                      </Form.Item>
+                    </FormItem>
+                    <FormItem label="Domestic Shipping Cost" unit="RMB" extra="￥">
+                      <Form.Item
+                        label="国内运费"
+                        name="domestic_shipping"
+                        initialValue={1200}
+                      >
+                        <InputNumber />
+                      </Form.Item>
+                    </FormItem>
+                    {/* 垫税成本是否自动计算10% */}
+                    <FormItem label="Prepaid Tax Cost" extra="%">
+                      <Form.Item
+                        label="垫税成本"
+                        name="tax_advance_rate"
+                        initialValue={0.1}
+                      >
+                        <InputNumber type='number' />
+                      </Form.Item>
+                    </FormItem>
+                    <FormItem label="USD to CNY Exchange Rate" extra="%">
+                      <Form.Item
+                        label="美元对人民币汇率"
+                        name="exchange_rate"
+                        required={false}
+                        initialValue={1.73}
+                        rules={[{ required: true }]}
+                      >
+                        <InputNumber />
+                      </Form.Item>
+                    </FormItem>
+                    <FormItem label="Estimated Profit" unit="USD" extra="$">
+                      <Form.Item
+                        label="预计利润"
+                        name="estimated_profit"
+                        initialValue={0}
+                      >
+                        <InputNumber />
+                      </Form.Item>
+                    </FormItem>
+                  </div>
+                ),
+              },
+              {
+                label: `FOB`,
+                key: '2',
+                forceRender: true,
+                children: (
+                  <FormItem label="FOB Cost" unit="USD" extra="$">
+                    <Form.Item
+                      label="FOB 成本"
+                      name="costFOB"
+                      initialValue={500}
+                    >
+                      <InputNumber />
+                    </Form.Item>
+                  </FormItem>
+                ),
+              }, {
+                label: `CIF`,
+                key: '3',
+                forceRender: true,
+                children: (
+                  <FormItem label="CIF Cost" unit="USD" extra="$">
+                    <Form.Item
+                      label="CIF 成本"
+                      name="costCIF"
+                      initialValue={0}
+                    >
+                      <InputNumber />
+                    </Form.Item>
+                  </FormItem>
+                ),
+              }
+            ]}
+          />
+          <Form.Item
+            style={{
+              display: 'flex',
+              justifyContent: 'end',
+            }}
+          >
+            <Space size="small" align='end' >
+              <Button type="primary" htmlType="submit">
+                计算
+              </Button>
+              <Button
+                danger
+                type="primary"
+                onClick={() => {
+                  form.resetFields();
+                }}
+              >
+                恢复默认
+              </Button>
+            </Space>
+          </Form.Item>
         </Spin>
+      </Form>
+      <Form
+        className='calc-form'
+        name="calc-form"
+        layout="horizontal"
+        labelCol={{ xs: 14 }}
+        wrapperCol={{ xs: 10 }}
+      >
+        <FormItem label="Tax Refund" unit="RMB" extra="￥">
+          <Form.Item
+            label="退税"
+            name="tax_refund"
+          >
+            <div>
+              <InputNumber readOnly value={calcData?.tax_refund} />
+            </div>
+          </Form.Item>
+        </FormItem>
+        <FormItem label="Invoice Price" unit="RMB" extra="￥">
+          <Form.Item
+            label="开票价"
+            name="invoice_price"
+          >
+            <div>
+              <Input readOnly value={calcData?.invoice_price} />
+            </div>
+          </Form.Item>
+        </FormItem>
+        <FormItem label="EXW Price" unit="USD" extra="$">
+          <Form.Item
+            label="EXW报价"
+            name="price"
+          >
+            <div>
+              <Input readOnly value={calcData?.price} />
+            </div>
+          </Form.Item>
+        </FormItem>
+        <FormItem label="FOB Price" unit="USD" extra="$">
+          <Form.Item
+            label="FOB报价"
+            name="priceFOB"
+          >
+            <div>
+              <Input readOnly value={calcData?.priceFOB} />
+            </div>
+          </Form.Item>
+        </FormItem>
+        <FormItem label="CIF Price" unit="USD" extra="$">
+          <Form.Item
+            label="CIF报价"
+            name="priceCIF"
+          >
+            <div>
+              <Input readOnly value={calcData?.priceCIF} />
+            </div>
+          </Form.Item>
+        </FormItem>
+        <Button block onClick={onDodnload} disabled={!calcData} type='primary'>生成报价单</Button>
       </Form>
     </>
   );
-};
+}

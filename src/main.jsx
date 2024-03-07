@@ -8,11 +8,11 @@ import './index.css'
 import './styles/h5.less'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+  // <React.StrictMode>
     <ConfigProvider locale={zhCN}>
       <BrowserRouter>
         <App />
       </BrowserRouter>
     </ConfigProvider>
-  </React.StrictMode>,
+  // </React.StrictMode>,
 )

@@ -1,9 +1,11 @@
 import { Modal, Select, Button, Space } from 'antd'
 import BaseDescription, { CarAcvanceDescription, CarDescription, CarImageList } from './price-description';
 import { useState, useMemo, useRef, useEffect } from 'react';
+import { useRequest } from 'ahooks';
 import { calculateCarPrice, useCarData, useCarImages, useCarInfo } from './useCarInfo';
 import html2pdf from '@/service/html2pdf';
 import { useSearchParams } from 'react-router-dom';
+import { getCarInfoList, getTransformCarInfo } from "@/service/dongchedi";
 import LanguageSelect from '../components/language';
 import './style.less'
 
@@ -23,11 +25,20 @@ function QuotationPage() {
   // 车辆信息 表单信息
   const [queryParams] = useSearchParams();
 
-  const data = useMemo(() => getQuery(queryParams), [queryParams])
+  const params = useMemo(() => getQuery(queryParams), [queryParams])
   // console.log('data from query', data);
-  const carImages = useCarImages(data);
-  const carInfo = useCarInfo(data)
-  const carData = useCarData(data)
+  const carImages = useCarImages(params);
+  // const carInfo = useCarInfo(params)
+  // const carData = useCarData(params)
+
+  const { data: carRes } = useRequest(getCarInfoList, {
+    // cacheKey: 'car-info' + params.id,
+    // cacheTime: 12 * 60 * 60 * 1000,
+    defaultParams: [{
+      car_id: params.car_id
+    }]
+  });
+  const [carData, carInfo] = getTransformCarInfo(carRes, params.car_id)
 
   const [loading, setLoading] = useState(false);
   const [isImageLoaded, setImageLoaded] = useState(false);
@@ -81,8 +92,10 @@ function QuotationPage() {
       </div>
       <div ref={pdfDom} className="pdf" style={{maxWidth: 500, margin: 'auto'}}>
         <div style={{paddingInline: 12}}>
-          <h3 >EXW报价：{data.price} $</h3>
-          <CarDescription data={carData} column={language.current === 'chinese_simplified' ? 2 : 1 } />
+          <h3 >EXW报价：{params.price} $</h3>
+          <h3 >FOB报价：{params.priceFOB} $</h3>
+          <h3 >CIF报价：{params.priceCIF} $</h3>
+          <CarDescription data={{...carData, ...carInfo}} column={language.current === 'chinese_simplified' ? 2 : 1 } />
           <BaseDescription data={carInfo} />
           <CarAcvanceDescription data={carInfo} />
           <CarImageList data={carImages} onLoad={() => setImageLoaded(true)} />

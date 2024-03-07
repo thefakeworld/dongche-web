@@ -46,9 +46,11 @@ export default function CarPriceIndex() {
   const { data: wiseRate } = useRequest(getWiseRate);
 
   console.log('wiseRate', wiseRate);
+  console.log('[carData, carInfo]', [carData, carInfo]);
 
   useUpdateEffect(() => {
     if (carData.car_id) {
+      form.setFieldValue('dealer_price', carData.dealer_price)
       form.setFieldValue('car_discount', getDiscountPrice(carData.dealer_price, carInfo.official_price))
     }
 
@@ -123,24 +125,24 @@ export default function CarPriceIndex() {
                 children: (
                   <div className="">
 
-                    <FormItem label="Discount" unit="RMB" extra="￥">
+                    {/* <FormItem label="Discount" unit="RMB" extra="￥">
                       <Form.Item
                         label="车价优惠"
                         name="car_discount"
                         initialValue={0}
+                        hidden
                       >
                         <InputNumber />
                       </Form.Item>
+                    </FormItem> */}
+                    <FormItem label="Dealer Price" unit="RMB" extra="￥">
+                      <Form.Item
+                        label="经销商报价"
+                        name="dealer_price"
+                      >
+                        <Input readOnly/>
+                      </Form.Item>
                     </FormItem>
-                    {/* <FormItem label="Dealer Price" unit="RMB" extra="￥">
-              <Form.Item
-                label="经销商报价"
-                name="dealer_price"
-                hidden
-              >
-                <InputNumber />
-              </Form.Item>
-            </FormItem> */}
                     <FormItem label="Pilot Channel Fee" unit="RMB" extra="￥">
                       <Form.Item
                         label="试点通道费"

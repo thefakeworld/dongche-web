@@ -1,7 +1,7 @@
 
 export const carItems = [
   {
-    key: 'brand_name',
+    key: 'sub_brand_name',
     label: '品牌',
   },
   {
@@ -53,8 +53,8 @@ export const carBaseitems = [
     label: '电池容量(kWh)',
   },
   {
-    key: 'constant_speed_mileage',
-    label: '续航',
+    key: 'recharge_mileage',
+    label: '纯电续航里程(km)',
   },
   {
     key: 'length_width_height',

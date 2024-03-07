@@ -139,6 +139,7 @@ export default function CarPriceIndex() {
                       <Form.Item
                         label="经销商报价"
                         name="dealer_price"
+                        initialValue={carData?.dealer_price}
                       >
                         <Input readOnly/>
                       </Form.Item>
@@ -186,7 +187,7 @@ export default function CarPriceIndex() {
                         label="美元对人民币汇率"
                         name="exchange_rate"
                         required={false}
-                        initialValue={1.73}
+                        initialValue={wiseRate?.value}
                         rules={[{ required: true }]}
                       >
                         <InputNumber />

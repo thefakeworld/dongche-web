@@ -48,20 +48,14 @@ export function getCarInfoList(params) {
 }
 export function getTransformCarInfo(res, car_id) {
   if(!res) return [{}, {}];
-  const { car_info } = res.data;
-  const carInfoItem = car_info.find(item => item.car_id === car_id);
+  const { car_info } = res.data
+  const carInfoItem = car_info.find(item => item.car_id === car_id)
   const { info, ...carData } = carInfoItem;
   const carExtraInfo = Object.keys(info).reduce((pre, cur) => {
-    pre[cur] = info[cur].value;
-    return pre;
-  }, {});
-
-  // 转换dealer_price格式
-  if(carData.dealer_price && typeof carData.dealer_price === 'string') {
-    carData.dealer_price = parseFloat(carData.dealer_price.replace('万', '')) * 10000;
-  }
-
-  return [carData, carExtraInfo];
+    pre[cur] = info[cur].value
+    return pre
+  }, {})
+  return [carData, carExtraInfo]
 }
 
 export function getWiseRate() {

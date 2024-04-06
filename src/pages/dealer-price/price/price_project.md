@@ -1,3 +1,25 @@
+# price Project Documentation
+## 1. 项目名称
+`price`
+## 2. 文件结构树
+
+```
+.
+├── FormItem.jsx
+├── hooks.js
+├── index.jsx
+├── price_project.md
+├── project2md_0.1.2.sh
+├── style.less
+└── （备份）hooks.js-2024-04-03-21-29-00
+
+0 directories, 7 files
+
+```
+## 3. 文件内容
+### 文件1: ./index.jsx
+
+```jsx
 import { getCarInfoDetail } from '@/service/home';
 import { useUpdateEffect, useRequest, useLocalStorageState, useBoolean } from 'ahooks';
 import { Button, List, Form, Input, Row, Select, Space, Tabs, Divider, InputNumber, Spin } from 'antd';
@@ -11,10 +33,6 @@ import { getCarInfoList, getTransformCarInfo, getWiseRate } from "../../../servi
 import { RightOutlined } from '@ant-design/icons';
 import FormItem from './FormItem';
 
-//独立的计算按钮方法依赖
-import { calculatePriceUsingFormValues } from './calculateFormValues';
-
-
 // const [carData] = useLocalStorageState(
 //   'car-data',
 //   {
@@ -23,31 +41,14 @@ import { calculatePriceUsingFormValues } from './calculateFormValues';
 // );
 
 
-
-
-// const getDiscountPrice = (dealer_price, official_price) => {
-//   const officialPrice = parseFloat(official_price.replace('万', '')) * 10000;
-//   const dealerPrice = parseFloat(dealer_price.replace('万', '')) * 10000;
-//   // 计算车价优惠并更新输入框
-//   const discountValue = Math.max(0, officialPrice - dealerPrice);
-
-//   return Number(discountValue).toFixed(2)
-// }
-
-
-
-// 1.改为以下了，因为dongchedi.js那边进行预处理了
 const getDiscountPrice = (dealer_price, official_price) => {
-  // 如果 official_price 依然是带有'万'字符串的格式，则替换; 否则直接使用
-  const officialPrice = typeof official_price === 'string' ? parseFloat(official_price.replace('万', '')) * 10000 : official_price;
-  const dealerPrice = dealer_price;  // 直接使用新的格式
+  const officialPrice = parseFloat(official_price.replace('万', '')) * 10000;
+  const dealerPrice = parseFloat(dealer_price.replace('万', '')) * 10000;
   // 计算车价优惠并更新输入框
   const discountValue = Math.max(0, officialPrice - dealerPrice);
 
-  return Number(discountValue).toFixed(2);
+  return Number(discountValue).toFixed(2)
 }
-
-
 
 export default function CarPriceIndex() {
   const params = useParams();
@@ -69,98 +70,24 @@ export default function CarPriceIndex() {
   console.log('wiseRate', wiseRate);
   console.log('[carData, carInfo]', [carData, carInfo]);
 
+  useUpdateEffect(() => {
+    if (carData.car_id) {
+      form.setFieldValue('dealer_price', carData.dealer_price)
+      form.setFieldValue('car_discount', getDiscountPrice(carData.dealer_price, carInfo.official_price))
+    }
 
+    if (wiseRate) {
+      form.setFieldValue('exchange_rate', wiseRate.value)
+    }
+  }, [data, wiseRate])
 
-
-
-  // useUpdateEffect(() => {
-  //   if (carData.car_id) {
-  //     form.setFieldValue('dealer_price', carData.dealer_price)
-  //     form.setFieldValue('car_discount', getDiscountPrice(carData.dealer_price, carInfo.official_price))
-  //   }
-
-  //   if (wiseRate) {
-  //     form.setFieldValue('exchange_rate', wiseRate.value)
-  //   }
-  // }, [data, wiseRate])
-
-
-// 2.改了，确保 useUpdateEffect 同步表单数据时不会覆盖用户输入
-// 只有当 carData 数据变化且用户未修改 dealer_price 字段时，才更新表单域的 dealer_price。使用 form.isFieldTouched 方法来检查字段是否被用户触碰
-// 这块然后就到hook.js的部分了
-// 移除或注释掉下面的对dealer_price的设置
-useUpdateEffect(() => {
-  if (carData.car_id && !form.isFieldTouched('dealer_price')) {
-    // form.setFieldValue('dealer_price', carData.dealer_price); // 注释掉这条代码，避免覆盖
-    form.setFieldValue('car_discount', getDiscountPrice(carData.dealer_price, carInfo.official_price));
-  }
-
-  if (wiseRate) {
-    form.setFieldValue('exchange_rate', wiseRate.value);
-  }
-}, [carData, carInfo, wiseRate]);
-
-
-// 新建一个计算按钮专用函数
-const handleCalculate = (values) => {
-  // 直接使用表单的values进行计算，不依赖 carData 或 carInfo 中的默认值
-  const res = calculatePrice({
-    dealer_price: values.dealer_price,  // 使用用户从表单输入的经销商报价
-    channel_fee: values.channel_fee,  // 使用用户从表单输入的试点通道费
-    license_fee: values.license_fee,  // 使用用户从表单输入的上牌服务费
-    domestic_shipping: values.domestic_shipping,  // 使用用户从表单输入的国内运费
-    tax_advance_rate: values.tax_advance_rate,  // 使用用户从表单输入的垫税成本
-    exchange_rate: values.exchange_rate,  // 使用用户从表单输入的汇率
-    estimated_profit: values.estimated_profit,  // 使用用户从表单输入的预计利润
-    costFOB: values.costFOB,  // 使用用户从表单输入的FOB成本
-    costCIF: values.costCIF,  // 使用用户从表单输入的CIF成本
-    // 确保添加了所有其他相关的表单值...
-    official_price: carInfo.official_price, // 这个值可能来自加载的车辆信息，如果也可以编辑则应从表单获取
-    fuel_form: carInfo.fuel_form  // 同上
-  });
-  setCalcData(res);
-  console.log('Calculated result with form values: ', res);
-};
-
-
-// 更新现有 onFinish 函数以使用新的 handleCalculate 函数
-// 修改的onFinish函数
-const onFinish = (values) => {
-  // 使用新的独立函数来计算价格
-  const res = calculatePriceUsingFormValues(values);
-  setCalcData(res); // 更新状态以反映计算结果
-  console.log('Received values: ', values);
-  console.log('Calculated result: ', res);
-};
-// 上面原来的是下面这个
-  // const onFinish = (values) => {
-  //   // 使用values对象中的值而不是carData的值
-  //   const res = calculatePrice(values, {
-  //     dealer_price: values.dealer_price, // 使用用户输入的值
-  //     official_price: carInfo.official_price, // 假设这个值不是从用户的输入获取，而是从加载的carInfo对象中获取
-  //     fuel_form: carInfo.fuel_form // 同上
-  //   });
-  //   setCalcData(res);
-  //   console.log('Received values: ', values);
-  //   console.log('最终的计算结果: ', res);
-  // };
-
-  // "恢复默认"按钮的事件处理函数
-  const handleResetToDefaults = () => {
-    // 使用服务端获得的数据重置表单字段
-    form.setFieldsValue({
-      dealer_price: carData?.dealer_price,
-      channel_fee: 1500, // 填入其它各项默认值
-      license_fee: 3600,
-      domestic_shipping: 1200,
-      tax_advance_rate: 0.1,
-      exchange_rate: wiseRate?.value,
-      estimated_profit: 0,
-      costFOB: 500,
-      costCIF: 0,
-      // 注意：如果 official_price 或 fuel_form 也需要重置，同理处理
-    });
+  const onFinish = (values) => {
+    const res = calculatePrice(values, { dealer_price: carData.dealer_price, official_price: carInfo.official_price, fuel_form: carInfo.fuel_form })
+    setCalcData(res);
+    console.log('Received values: ', values);
+    console.log('最终结果: ', res);
   };
+
 
   const onDodnload = (values) => {
     if (!getLocalSecret()) {
@@ -173,17 +100,7 @@ const onFinish = (values) => {
 
   return (
     <>
-      <Form
-      className='car-price'
-      name="advanced_search"
-      form={form}
-      layout="horizontal"
-      labelCol={{ xs: 14 }}
-      wrapperCol={{ xs: 10 }}
-      onFinish={onFinish} // 使用更新过的 onFinish 函数
-      autoComplete="off"
-      >
-      {/* <SecretModal open={openState} onCancel={setFalse} onOk={onDodnload} />
+      <SecretModal open={openState} onCancel={setFalse} onOk={onDodnload} />
       <Form
         className='car-price'
         name="advanced_search"
@@ -196,7 +113,7 @@ const onFinish = (values) => {
         // style={formStyle}
         onFinish={onFinish}
         autoComplete="off"
-      > */}
+      >
 
         {/* <Form.Item
           label="交易方式"
@@ -353,25 +270,19 @@ const onFinish = (values) => {
               justifyContent: 'end',
             }}
           >
-
-
             <Space size="small" align='end' >
               <Button type="primary" htmlType="submit">
                 计算
               </Button>
-
-
-
-            <Button
-              danger
-              type="primary"
-              onClick={handleResetToDefaults}
-            >
-              填入建议值
-            </Button>
-
-
-
+              <Button
+                danger
+                type="primary"
+                onClick={() => {
+                  form.resetFields();
+                }}
+              >
+                恢复默认
+              </Button>
             </Space>
           </Form.Item>
         </Spin>
@@ -438,3 +349,249 @@ const onFinish = (values) => {
     </>
   );
 }
+
+```
+
+### 文件2: ./style.less
+
+```less
+
+.formItem {
+  display: flex;
+  align-items: center;
+    .ant-input-number  {
+      width: 100% !important;
+    }
+  label {
+    font-weight: bold;
+  }
+  .unit {
+    &.red {
+      color: red;
+    }
+    &.green {
+      color: green;
+    }
+    &.blue {
+      color: blue;
+    }
+  }
+  .extra {
+    margin-top: 8px;
+    height: 32px;
+    vertical-align: middle;
+    line-height: 32px;
+  }
+
+  .price-rmb {
+    background-color: red;
+  }
+
+  .main {
+    flex: 1;
+  }
+  column-gap: 16px;
+  .top-label {
+    display: flex;
+    justify-content: space-between;
+  }
+}
+
+.app-h5 {
+
+  .car-info-item {
+    display: flex;
+    column-gap: 16px;
+    align-items: center;
+    .right {
+      flex: 1;
+    }
+  }
+
+  .car-price {
+    padding-block: 16px;
+    .ant-form-item {
+      width: 100%;
+    }
+  }
+  .calc-form {
+    padding: 16px;
+    border-radius: 4px;
+    border: 1px solid #eee;
+    margin-bottom: 16px;
+    .ant-form-item-label {
+      font-size: 14px;
+      font-weight: bold;
+    }
+  }
+}
+
+```
+
+### 文件3: ./FormItem.jsx
+
+```jsx
+import { PayCircleOutlined, DollarOutlined, PercentageOutlined } from '@ant-design/icons';
+const unitColorMap = {
+  '￥': 'red',
+  '$': 'green',
+  '%': 'blue',
+}
+
+const PriceRMB = () => {
+  return <div className="price-rmb"><PayCircleOutlined /></div>
+}
+
+const PriceUSD = () => {
+  return <div className="price-usd"><DollarOutlined /></div>
+}
+
+const Percent = () => {
+  return <div className="price-percent"><PercentageOutlined /></div>
+}
+
+const componentMap = {
+  '￥': PayCircleOutlined,
+  '$': DollarOutlined,
+  '%': PercentageOutlined,
+}
+
+export default function FormItem({ label, unit, extra, children }){
+
+  const unitColor = unitColorMap[extra]
+
+  const Extra = componentMap[extra]
+
+  return <div className="formItem">
+    <div className="main">
+      <div className="top-label">
+        <div className="title">{label}</div>
+        <div className={`unit ${unitColor}`} >{unit}</div>
+      </div>
+      <div className="form-item">
+        {children}
+      </div>
+    </div>
+    <div className="extra"><Extra className={`unit ${unitColor}`} /></div>
+  </div>
+}
+```
+
+### 文件4: ./hooks.js
+
+```javascript
+export function calculatePrice(data, car_info_record) {
+  try {
+    
+    // 从前端获取的参数，如果没有提供则使用默认值
+    const car_discount = Number(data.car_discount) || 0;
+    const channel_fee = Number(data.channel_fee) || 1500.0;
+    const license_fee = Number(data.license_fee) || 3600.0;
+    const domestic_shipping = Number(data.domestic_shipping) || 1200.0;
+    const tax_advance_rate = Number(data.tax_advance_rate) || 0.1;
+    const exchange_rate = Number(data.exchange_rate);
+    const estimated_profit = Number(data.estimated_profit);
+    const costFOB = Number(data.costFOB);
+    const costCIF = Number(data.costCIF);
+
+    // 模拟数据库查询结果
+    // const car_info_record = {
+    //   official_price: '20万',
+    //   dealer_price: '15万',
+    //   car_id: 123,
+    //   series_id: 456,
+    // };
+
+    const official_price = Number(car_info_record.official_price.replace('万', '')) * 10000;
+    // const dealer_price = Number(car_info_record.dealer_price.replace('万', '')) * 10000;
+
+    // // 如果前端没有提供车价优惠，则计算得出
+    // const carDiscount = car_discount || (official_price - dealer_price);
+
+    // 开票价
+    const invoice_price = (official_price - car_discount);
+
+    // 增值税
+    const vat = (invoice_price / 1.13) * 0.13;
+
+    // 垫资成本
+    const financing_cost = invoice_price * 0.7 * 30 * 0.0004;
+
+    // 购置税
+    let purchase_tax = 0;
+    if (car_info_record.fuel_form && !['纯电动', '增程式', '插电式混合动力'].includes(car_info_record.fuel_form)) {
+      purchase_tax = invoice_price / 11.3;  // 根据开票价来计算购置税
+    }
+
+    // 购置税税金
+    const purchase_tax_tax = purchase_tax * 0.13;
+
+    // 退税（假设等于增值税）
+    const tax_refund = vat + purchase_tax;
+
+    // 垫税成本
+    const tax_advance_cost = vat * tax_advance_rate;
+
+    // 人民币成本
+    const rmb_cost = (invoice_price + purchase_tax + purchase_tax_tax + tax_advance_cost + financing_cost +
+                      channel_fee + license_fee + domestic_shipping - tax_refund);
+
+    // EXW 成本
+    const exw_cost = rmb_cost / exchange_rate;
+
+    // 最终报价
+    const final_price = exw_cost + estimated_profit;
+    const priceFOB = final_price + costFOB;
+    const priceCIF = final_price + costFOB + costCIF;
+    
+    console.log(exw_cost, costFOB, costCIF);
+    console.log('Price: ', {
+      final_price,
+      priceFOB,
+      priceCIF
+    });
+
+    // 计算过程
+    const calculation_details = {
+      invoice_price,
+      purchase_tax,
+      purchase_tax_tax,
+      tax_advance_cost,
+      financing_cost,
+      channel_fee,
+      license_fee,
+      domestic_shipping,
+      tax_refund,
+      operation: `(${invoice_price} + ${purchase_tax} + ${purchase_tax_tax} + ${tax_advance_cost} + ${financing_cost} + ${channel_fee} + ${license_fee} + ${domestic_shipping} - ${tax_refund}) / ${exchange_rate} + ${estimated_profit}`,
+    };
+
+    return { car_id: car_info_record.car_id, series_id: car_info_record.series_id, 
+      invoice_price: invoice_price.toFixed(2),
+      exw_cost: exw_cost.toFixed(2),
+      price:final_price.toFixed(2), 
+      priceFOB:priceFOB.toFixed(2), 
+      priceCIF:priceCIF.toFixed(2), 
+      tax_refund:tax_refund.toFixed(2), 
+      calculation_details };
+  } catch (error) {
+    console.error('Error calculating price:', error);
+    throw error;
+  }
+}
+
+// // 示例使用
+// const dataFromFrontend = {
+//   car_name: 'YourCar',
+//   car_discount: 1000,
+//   channel_fee: 2000,
+//   license_fee: 3000,
+//   domestic_shipping: 4000,
+//   tax_advance_rate: 0.2,
+//   exchange_rate: 6.5,
+//   estimated_profit: 5000,
+// };
+
+// calculatePrice(dataFromFrontend)
+
+```
+

@@ -20,11 +20,7 @@ export function calculatePrice(data, car_info_record) {
     //   series_id: 456,
     // };
 
-    // 从index.js那边来的 也是因为dongchedi.js那边已经处理过了
-    const official_price = typeof car_info_record.official_price === 'string' ? parseFloat(car_info_record.official_price.replace('万', '')) * 10000 : car_info_record.official_price;
-
-
-    // const official_price = Number(car_info_record.official_price.replace('万', '')) * 10000;
+    const official_price = Number(car_info_record.official_price.replace('万', '')) * 10000;
     // const dealer_price = Number(car_info_record.dealer_price.replace('万', '')) * 10000;
 
     // // 如果前端没有提供车价优惠，则计算得出

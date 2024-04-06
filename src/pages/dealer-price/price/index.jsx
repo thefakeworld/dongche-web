@@ -19,11 +19,12 @@ import FormItem from './FormItem';
 // );
 
 
-const getDiscountPrice = (dealer_price, official_price) => {
+const getDiscountPrice = (dealer_price_value, official_price) => {
+  if(!dealer_price_value && !official_price) return 0
   const officialPrice = parseFloat(official_price.replace('万', '')) * 10000;
-  const dealerPrice = parseFloat(dealer_price.replace('万', '')) * 10000;
+  // const dealerPrice = parseFloat(dealer_price.replace('万', '')) * 10000;
   // 计算车价优惠并更新输入框
-  const discountValue = Math.max(0, officialPrice - dealerPrice);
+  const discountValue = Math.max(0, officialPrice - dealer_price_value);
 
   return Number(discountValue).toFixed(2)
 }
@@ -44,14 +45,22 @@ export default function CarPriceIndex() {
   });
   const [carData, carInfo] = getTransformCarInfo(data, params.id)
   const { data: wiseRate } = useRequest(getWiseRate);
-
+  const initialDiscountPrice = getDiscountPrice(carData?.dealer_price_value * 10000, carInfo?.official_price)
+  
   console.log('wiseRate', wiseRate);
   console.log('[carData, carInfo]', [carData, carInfo]);
 
+  const handleDealerPriceChange = () => {
+    const dealer_price_value = form.getFieldValue('dealer_price')
+    form.setFieldValue('car_discount', getDiscountPrice(dealer_price_value, carInfo.official_price))
+  }
+
   useUpdateEffect(() => {
     if (carData.car_id) {
-      form.setFieldValue('dealer_price', carData.dealer_price)
-      form.setFieldValue('car_discount', getDiscountPrice(carData.dealer_price, carInfo.official_price))
+      const dealer_price_value = carData.dealer_price_value * 10000;
+      form.setFieldValue('dealer_price', dealer_price_value)
+      console.log('车优惠', getDiscountPrice(dealer_price_value, carInfo.official_price));
+      form.setFieldValue('car_discount', getDiscountPrice(dealer_price_value, carInfo.official_price))
     }
 
     if (wiseRate) {
@@ -124,24 +133,23 @@ export default function CarPriceIndex() {
                 key: '1',
                 children: (
                   <div className="">
-
-                    {/* <FormItem label="Discount" unit="RMB" extra="￥">
+                    <FormItem label="Discount" unit="RMB" extra="￥">
                       <Form.Item
                         label="车价优惠"
                         name="car_discount"
-                        initialValue={0}
-                        hidden
+                        readOnly
+                        initialValue={initialDiscountPrice}
                       >
                         <InputNumber />
                       </Form.Item>
-                    </FormItem> */}
+                    </FormItem>
                     <FormItem label="Dealer Price" unit="RMB" extra="￥">
                       <Form.Item
                         label="经销商报价"
                         name="dealer_price"
-                        initialValue={carData?.dealer_price}
+                        initialValue={carData?.dealer_price_value * 10000}
                       >
-                        <Input readOnly/>
+                        <Input onChange={handleDealerPriceChange} />
                       </Form.Item>
                     </FormItem>
                     <FormItem label="Pilot Channel Fee" unit="RMB" extra="￥">
